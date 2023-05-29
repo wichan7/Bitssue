@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bitssue</title>
+    <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
+    <style>
+        .btn{
+    border:none;
+    outline:none;
+    background-color:#ffffff;
+    
+    width:400px;
+    height:100px;
+    
+    cursor:pointer;
+    box-shadow:1px 1px 10px rgba(0, 0, 0, 0.5);
+}
+.btn:hover{
+    width:405px;
+    height:103px;
+}
+.btn_title{
+    position:relative;
+    bottom:5px;
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: bold;
+}
+.btn_content{
+    position:relative;
+    bottom:3px;
+    font-family: 'Times New Roman', Times, serif;
+    width:100%;
+    
+    display:inline-block;
+    text-overflow:ellipsis;
+    overflow:hidden;
+    
+    background-color:#9edaff;
+}
+header{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 40px;
+    padding: 1rem;
+    color: BLACK;
+    background: #9edaff;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+}
+
+main{
+    padding-top: 100px;
+    padding-bottom: 60px;
+}
+
+footer{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 10px;
+    padding: 1rem;
+    color: WHITE;
+    background: #444444;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2;
+    text-align:right;
+}
+#back-to-top {
+    display: inline-block;
+    background-color: transparent !important;
+    width: 38px;
+    height: 38px;
+    text-align: center;
+    border-radius: 4px;
+    position: fixed;
+    bottom: 50px !important;
+    right: 30px !important;
+    transition: background-color .3s, opacity .5s, visibility .5s;
+    opacity: 0;
+    visibility: visible;
+    z-index: 99999999;
+}
+.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Bitssue</h1>
+    </header>
+
+    <main>
+        <div id="div-tweet" style="text-align:center;">
+
+        </div>
+    </main>
+    <a id="back-to-top">
+        <img src='/public/resources/button_top.png' style='width:38px; height:38px;'>
+    </a>
+    <footer>
+        <p>contact: wichan1255@gmail.com</p>
+    </footer>
+</body>
+<script type="text/javascript">
+    let isEnd = false;
+    var interval_flag = true;
+    let tweetCount = 0;
+
+    jQuery(document).ready(function(){
+		// IE not supports, IE 지원 X
+		window.scrollY;
+		document.scrollingElement.scrollTop;
+
+		// Supports all major browsers
+		document.documentElement.scrollTop;
+		document.querySelector('html').scrollTop;
+
+		// 스크롤이 끝으로 이동 시 이벤트 발생
+		window.addEventListener('scroll', () => {
+			if (window.pageYOffset <= 0) {
+				jQuery('#back-to-top').removeClass('show');
+			} else {
+				jQuery('#back-to-top').addClass('show');
+			}
+		});
+		jQuery(window).on("touchmove", function (e) {
+			if (window.pageYOffset <= 0) {
+				jQuery('#back-to-top').removeClass('show');
+			} else {
+				jQuery('#back-to-top').addClass('show');
+			}
+		});
+		jQuery('#back-to-top').on('click touch', function() {
+			jQuery('html,body').animate({ scrollTop: 0 }, 500);
+			jQuery('#back-to-top').removeClass('show');
+		});
+	});
+
+    $(function(){
+        $.ajax({
+            url:"/api/tweet/count",
+            type: "GET",
+            dataType: "JSON",
+            success: function(result){
+                tweetCount = result.count;
+                fetchList();
+            }
+        });
+    });
+
+    $(function(){
+        //scroll
+        $(window).scroll(function(){
+            let $window = $(this);
+            let scrollTop = $window.scrollTop();
+            let windowHeight = $window.height();
+            let documentHeight = $(document).height();
+                    
+            if( scrollTop + windowHeight + 30 > documentHeight ){
+                if (interval_flag){
+                    fetchList();
+                }
+            }
+        });
+    });
+
+    let isInit = true;
+    //fetchList()
+    let fetchList = function(){
+        interval_flag = false;
+        let startNo = $("#div-tweet button").last().data("no") - 1;
+        if (isInit){
+            isInit = false;
+            startNo = tweetCount;
+        }
+        $.ajax({
+            url:"/api/tweet?no=" + startNo,
+            type: "GET",
+            dataType: "JSON",
+            success: function(result){
+                
+                setTimeout( () => { interval_flag = true; }, 100);
+                let length = result.data.length;
+                $.each(result.data, function(index, vo) {
+                    renderList(false, vo);
+                })
+            }
+        });
+    }
+    
+    //renderList()
+    let renderList = function(mode, vo){
+        let html = `<button data-no="${vo._id}" type="button" class="btn"
+                            onclick="window.open('https://twitter.com/${vo.who}')"">
+                        <span class="btn_title">${vo.who} 갱신 · ${vo.date}</span><br>
+                        <span class="btn_content">${vo.text}</span><br>
+                    </button><br/><br/>`;
+
+        mode ? $("#div-tweet").prepend(html) : $("#div-tweet").append(html);
+    }
+</script>
+</html>

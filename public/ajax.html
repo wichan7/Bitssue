@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8"/>
+        <title>ajax.html</title>
+        <script type="text/javascript" src="node_modules/jquery/dist/jquery.js"></script>
+        <script>
+            $(document).ready(() => {
+                $(".ajaxSend").on("click", function(){
+                    var email = $('input[name=email]').val();
+                    $.ajax({
+                        url : "/ajax",
+                        type : "POST",
+                        dataType : "JSON",
+                        data : { "email" : email }
+                    })
+
+                    .done(function (json){
+                        $(".result").text(json.email)
+                    })
+
+                    .fail(function (xhr, status, errorThrown){
+                        alert("Ajax failed")
+                    })
+                });
+            })
+        </script>
+    </head>
+    <body>
+        <h1>ajax page</h1>
+        <form action="/ajax" method="post">
+            이메일: <input type="text" name="email"><br/>
+        </form>
+        <button class="ajaxSend">ajaxSend</button>
+        <div class="result"></div>
+        
+    </body>
+</html>
